@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+message UserInfo 
+{
+    string user_name = 1;
+    string user_password = 2;
+}
+
+message ResponseInfo 
+{
+    string message = 1;
+    int32 response_id = 2;
+}
+
+message PlayerInput
+{
+    string playerName = 1;
+    int32 yaw = 3;
+    int32 hori = 4;
+    int32 vect = 5;
+    int32 speed = 6;
+}
+
+message FrameData
+{
+    int32 frameNo = 1;
+    PlayerInput playerInput = 2;
+}
