@@ -7,6 +7,7 @@
 #define DATABASE "test"
 #define TABLENAME "USER"
 
+#define RE_LOG_IN -3
 #define CONNECT_TO_SQL_ERROR -2
 #define QUERY_SQL_ERROR -1
 #define QUERY_EMPTY 1

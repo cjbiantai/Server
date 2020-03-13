@@ -55,8 +55,4 @@ RecvDataManager::RecvDataManager()
     length = 0;
 }
 
-bool RecvDataManager::operator < (const RecvDataManager & other) const 
-{
-    return this->front < other.front;
-}
 

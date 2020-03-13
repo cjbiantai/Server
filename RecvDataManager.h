@@ -12,9 +12,8 @@ public:
     char popData();
     char getDataAt(int);
     RecvDataManager();
-    bool operator < (const RecvDataManager &)const;
 private:
     int front,length;
-    char buff[BUFF_SIZE];
+    char buff[BUFF_SIZE * 10];
 };
 

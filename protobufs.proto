@@ -10,15 +10,17 @@ message ResponseInfo
 {
     string message = 1;
     int32 response_id = 2;
+    int32 yourfd = 3;
 }
 
 message PlayerInput
 {
     string playerName = 1;
-    int32 yaw = 3;
-    int32 hori = 4;
-    int32 vect = 5;
-    int32 speed = 6;
+    int32 yaw = 2;
+    int32 hori = 3;
+    int32 vect = 4;
+    int32 speed = 5;
+    int32 type = 6;
 }
 
 message FrameData

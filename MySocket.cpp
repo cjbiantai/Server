@@ -2,7 +2,6 @@
 
 MySocket::MySocket(int port)
 {
-    frameNo = 0;
     this->port = port;
 }
 
@@ -67,7 +66,7 @@ void MySocket::InitEpoll()
 }
 void MySocket::Work(char *data, char* buff) 
 {
-    int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+    int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 1);
     for(int i = 0; i < nfds; ++i)
     {
         int fd = events[i].data.fd;
@@ -75,6 +74,14 @@ void MySocket::Work(char *data, char* buff)
         if((fd_events & EPOLLERR) || (fd_events & EPOLLHUP) || (!(fd_events & EPOLLIN)))
         {
             printf("fd:%d error \n", fd);
+            clientDatas.clientData.erase(fd);
+            clientDatas.ClientFDSet.erase(fd);
+            clientDatas.ClientFrameData.erase(fd);
+            if(clientDatas.FdToUser.find(fd) != clientDatas.FdToUser.end())
+            {
+                clientDatas.Users.erase(clientDatas.FdToUser[fd]);
+                clientDatas.FdToUser.erase(fd);
+            }
             close(fd);
             continue;
         }
@@ -96,9 +103,10 @@ void MySocket::Work(char *data, char* buff)
         }else 
         {
             int ret = -1,client_fd = events[i].data.fd;
-            if(ClientData.find(client_fd) == ClientData.end()) 
+            clientDatas.ClientFDSet.insert(client_fd);
+            if(clientDatas.clientData.find(client_fd) == clientDatas.clientData.end()) 
             {
-                    ClientData[client_fd] = RecvDataManager();
+                    clientDatas.clientData[client_fd] = RecvDataManager();
             }
             HandleRecvData(client_fd, data, buff);
         }
@@ -107,7 +115,7 @@ void MySocket::Work(char *data, char* buff)
 
 void MySocket::HandleRecvData(int client_fd, char* data, char* buff)
 {
-    RecvDataManager& recvDataManager = ClientData[client_fd];
+    RecvDataManager& recvDataManager = clientDatas.clientData[client_fd];
     int ret = recv(client_fd, data, recvDataManager.emptySize(), 0);
     if(ret > 0) 
     {
@@ -119,11 +127,30 @@ void MySocket::HandleRecvData(int client_fd, char* data, char* buff)
     }else if(ret < 0)
     {
         printf("recv data from fd:%d error, errno = %d, (%s)\n", client_fd, errno, strerror(errno));
+        if(errno != EINTR && errno != EWOULDBLOCK && errno != EAGAIN)
+        {   
+            clientDatas.clientData.erase(client_fd);
+            clientDatas.ClientFDSet.erase(client_fd);
+            clientDatas.ClientFrameData.erase(client_fd);
+            if(clientDatas.FdToUser.find(client_fd) != clientDatas.FdToUser.end())
+            {
+                clientDatas.Users.erase(clientDatas.FdToUser[client_fd]);
+                clientDatas.FdToUser.erase(client_fd);
+            }
+            close(client_fd);
+
+        }
     }else 
     {
         printf("socket:%d closed\n", client_fd);
-        ClientData.erase(client_fd);
-        ClientFDSet.erase(client_fd);
+        clientDatas.clientData.erase(client_fd);
+        clientDatas.ClientFDSet.erase(client_fd);
+        clientDatas.ClientFrameData.erase(client_fd);
+        if(clientDatas.FdToUser.find(client_fd) != clientDatas.FdToUser.end())
+        {
+            clientDatas.Users.erase(clientDatas.FdToUser[client_fd]);
+            clientDatas.FdToUser.erase(client_fd);
+        }
         int close_ret = close(client_fd);
         if(close_ret == -1) 
         {
@@ -134,7 +161,7 @@ void MySocket::HandleRecvData(int client_fd, char* data, char* buff)
 
 void MySocket::HandleData(int client_fd, char* data, char* buff)
 {
-    RecvDataManager& RecvDataManager = ClientData[client_fd];
+    RecvDataManager& RecvDataManager = clientDatas.clientData[client_fd];
     while(RecvDataManager.size() >= HEAD_LENGTH) 
     {
         int symbol = RecvDataManager.getDataAt(0);
@@ -173,8 +200,8 @@ void MySocket::HandleMsg(int client_fd, int symbol, int package_length, char* da
         FrameData fmData;
         PlayerInput* ptr = fmData.mutable_playerinput();
         ptr -> CopyFrom(playerInput);
-        ClientFrameData[client_fd] = fmData;
-    }else if(symbol == LOG_IN)
+        if(ptr -> type() != 0)  clientDatas.ClientFrameData[client_fd] = fmData;
+    }else if(symbol == LOG_IN || symbol == SIGN_UP)
     {
         HandleLogIn(symbol, package_length, client_fd, data, buff);
     }
@@ -188,7 +215,7 @@ void MySocket::SendToClient(int client_fd, int length, char* buff)
         printf("send to client error: client_fd = %d, errno = %d, (%s)\n", client_fd, errno, strerror(errno));
     }else 
     {
-        printf("send to client :client_fd = %d,lenth = %d, data = %s\n", client_fd, length, buff);
+        printf("send to client :client_fd = %d,lenth = %d\n", client_fd, length);
     }
 }
 
@@ -196,7 +223,7 @@ void MySocket::SendToClient(int client_fd, int length, char* buff)
 void MySocket::SendToAllClients(int length, char* buff)
 {
     std::set<int>::iterator it;
-    for(it = ClientFDSet.begin(); it != ClientFDSet.end(); it ++ )
+    for(it = clientDatas.ClientFDSet.begin(); it != clientDatas.ClientFDSet.end(); it ++ )
     {
         SendToClient((*it), length, buff);
     }
@@ -204,28 +231,33 @@ void MySocket::SendToAllClients(int length, char* buff)
 
 void MySocket::Broad(char* buff)
 {
-    frameNo += 1;
+    clientDatas.frameNo += 1;
     std::map<int, FrameData>::iterator it;
-    for(it = ClientFrameData.begin(); it!= ClientFrameData.end(); it++)
+    for(it = clientDatas.ClientFrameData.begin(); it!= clientDatas.ClientFrameData.end(); it++)
     {
         FrameData fmData = (*it).second;
-        fmData.set_frameno(frameNo);
+        fmData.set_frameno(clientDatas.frameNo);
         int length = fmData.ByteSize();
-        if(!fmData.SerializeToArray(buff, BUFF_SIZE + HEAD_LENGTH))
+        if(!fmData.SerializeToArray(buff + HEAD_LENGTH, BUFF_SIZE))
         {
-            printf("SerializeToArray Error: error at framNo = %d, client_fd = %d\n", frameNo, (*it).first);
+            printf("SerializeToArray Error: error at framNo = %d, client_fd = %d\n", clientDatas.frameNo, (*it).first);
             continue;
         }
-        AllFrameData.push_back(fmData);
-        SendToClient((*it).first, length, buff);
+        PlayerInput *playerInput = fmData.mutable_playerinput();
+        clientDatas.AllFrameData[clientDatas.totalFrame++] = fmData;
+        buff[0] = FRAME_DATA;
+        buff[1] = length / LENGTH_BASE + 1;
+        buff[2] = length % LENGTH_BASE + 1;
+        SendToAllClients(length + HEAD_LENGTH, buff);
     }
 }
 void MySocket::HandleLogIn(int symbol, int length, int client_fd, char* data, char* buff)
 {
     ResponseInfo resp;
     UserInfo user;
-    char query_string[255];
     int ret;
+    char query_string[255];
+    resp.set_yourfd(client_fd);
     if(!user.ParseFromArray(data, length))
     {
         printf("ParseFromArray Error\n");
@@ -235,7 +267,7 @@ void MySocket::HandleLogIn(int symbol, int length, int client_fd, char* data, ch
     else if(LOG_IN == symbol) 
     {
         sprintf(query_string, "select * from %s where name='%s'", TABLENAME, user.user_name().c_str());
-        int ret = query_sql(query_string);
+        ret = query_sql(query_string);
         resp.set_response_id(ret);
         switch (ret) {
             case CONNECT_TO_SQL_ERROR:
@@ -251,7 +283,16 @@ void MySocket::HandleLogIn(int symbol, int length, int client_fd, char* data, ch
                 sprintf(query_string, "select * from %s where name = '%s' and password = '%s'", TABLENAME, user.user_name().c_str(), user.user_password().c_str());
                 ret = query_sql(query_string);
                 if(ret == QUERY_OK){
-                    resp.set_message("OK");
+                    if(clientDatas.Users.find(user.user_name()) == clientDatas.Users.end())
+                    {
+                        clientDatas.Users.insert(user.user_name());
+                        clientDatas.FdToUser[client_fd] = user.user_name();
+                        resp.set_message("OK");
+                    }else 
+                    {
+                        resp.set_message("user has already log in\n");
+                        resp.set_response_id(RE_LOG_IN);
+                    }
                 }else
                 {
                     resp.set_message("PASSWORD WRONG");
@@ -262,8 +303,8 @@ void MySocket::HandleLogIn(int symbol, int length, int client_fd, char* data, ch
     }else
     {
         sprintf(query_string, "select * from %s where name='%s'", TABLENAME, user.user_name().c_str());
-        int ret = query_sql(query_string);
-        resp.set_response_id(ret);
+        ret = query_sql(query_string);
+        resp.set_response_id(ret + SIGN_UP_OFFSET);
         switch (ret)
         {
             case CONNECT_TO_SQL_ERROR:
@@ -274,23 +315,47 @@ void MySocket::HandleLogIn(int symbol, int length, int client_fd, char* data, ch
                 break;
             case QUERY_OK:
                 resp.set_message("USER HAS EXISTED");
-                resp.set_response_id(QUERY_EMPTY);
+                resp.set_response_id(QUERY_EMPTY + SIGN_UP_OFFSET);
                 break;
             default:
                 sprintf(query_string, "insert into %s value('%s','%s')", TABLENAME, user.user_name().c_str(), user.user_password().c_str());
                 ret = query_sql(query_string);
-                resp.set_response_id(QUERY_OK);
+                resp.set_response_id(QUERY_OK + SIGN_UP_OFFSET);
                 resp.set_message("OK");
         }
     }    
-    if(!resp.SerializeToArray(buff + HEAD_LENGTH, BUFF_SIZE + HEAD_LENGTH))
+    if(!resp.SerializeToArray(buff + HEAD_LENGTH, BUFF_SIZE))
     {
         printf("SerializeToArray Error\n");
         return ;
     }
     length = resp.ByteSize();
-    buff[0] = symbol;
+    buff[0] = RESPONSE;
     buff[1] = length / LENGTH_BASE + 1;
     buff[2] = length % LENGTH_BASE + 1;
     SendToClient(client_fd, length + HEAD_LENGTH, buff);
+    if(symbol == LOG_IN && resp.message() == "OK") 
+    {
+        SendToClientHistoryFrame(client_fd, buff);
+    }
 }
+
+void MySocket::SendToClientHistoryFrame(int client_fd, char* buff)
+{
+    for(int i = 0; i < clientDatas.totalFrame; i++)
+    {
+        FrameData fmData = clientDatas.AllFrameData[i];
+        int length = fmData.ByteSize();
+        if(!fmData.SerializeToArray(buff + HEAD_LENGTH, BUFF_SIZE))
+        {
+            printf("SerializeToArray Error: error at framNo = %d, client_fd = %d\n", fmData.frameno(), client_fd);
+            continue;
+        }
+        buff[0] = FRAME_DATA;
+        buff[1] = length / LENGTH_BASE + 1;
+        buff[2] = length % LENGTH_BASE + 1;
+        SendToClient(client_fd, length + HEAD_LENGTH, buff);
+
+    }
+}
+

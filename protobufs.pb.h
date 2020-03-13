@@ -296,12 +296,19 @@ class ResponseInfo : public ::google::protobuf::Message /* @@protoc_insertion_po
   ::google::protobuf::int32 response_id() const;
   void set_response_id(::google::protobuf::int32 value);
 
+  // int32 yourfd = 3;
+  void clear_yourfd();
+  static const int kYourfdFieldNumber = 3;
+  ::google::protobuf::int32 yourfd() const;
+  void set_yourfd(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:ResponseInfo)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::internal::ArenaStringPtr message_;
   ::google::protobuf::int32 response_id_;
+  ::google::protobuf::int32 yourfd_;
   mutable int _cached_size_;
   friend struct ::protobuf_protobufs_2eproto::TableStruct;
   friend void ::protobuf_protobufs_2eproto::InitDefaultsResponseInfoImpl();
@@ -404,29 +411,35 @@ class PlayerInput : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::std::string* release_playername();
   void set_allocated_playername(::std::string* playername);
 
-  // int32 yaw = 3;
+  // int32 yaw = 2;
   void clear_yaw();
-  static const int kYawFieldNumber = 3;
+  static const int kYawFieldNumber = 2;
   ::google::protobuf::int32 yaw() const;
   void set_yaw(::google::protobuf::int32 value);
 
-  // int32 hori = 4;
+  // int32 hori = 3;
   void clear_hori();
-  static const int kHoriFieldNumber = 4;
+  static const int kHoriFieldNumber = 3;
   ::google::protobuf::int32 hori() const;
   void set_hori(::google::protobuf::int32 value);
 
-  // int32 vect = 5;
+  // int32 vect = 4;
   void clear_vect();
-  static const int kVectFieldNumber = 5;
+  static const int kVectFieldNumber = 4;
   ::google::protobuf::int32 vect() const;
   void set_vect(::google::protobuf::int32 value);
 
-  // int32 speed = 6;
+  // int32 speed = 5;
   void clear_speed();
-  static const int kSpeedFieldNumber = 6;
+  static const int kSpeedFieldNumber = 5;
   ::google::protobuf::int32 speed() const;
   void set_speed(::google::protobuf::int32 value);
+
+  // int32 type = 6;
+  void clear_type();
+  static const int kTypeFieldNumber = 6;
+  ::google::protobuf::int32 type() const;
+  void set_type(::google::protobuf::int32 value);
 
   // @@protoc_insertion_point(class_scope:PlayerInput)
  private:
@@ -437,6 +450,7 @@ class PlayerInput : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::google::protobuf::int32 hori_;
   ::google::protobuf::int32 vect_;
   ::google::protobuf::int32 speed_;
+  ::google::protobuf::int32 type_;
   mutable int _cached_size_;
   friend struct ::protobuf_protobufs_2eproto::TableStruct;
   friend void ::protobuf_protobufs_2eproto::InitDefaultsPlayerInputImpl();
@@ -738,6 +752,20 @@ inline void ResponseInfo::set_response_id(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:ResponseInfo.response_id)
 }
 
+// int32 yourfd = 3;
+inline void ResponseInfo::clear_yourfd() {
+  yourfd_ = 0;
+}
+inline ::google::protobuf::int32 ResponseInfo::yourfd() const {
+  // @@protoc_insertion_point(field_get:ResponseInfo.yourfd)
+  return yourfd_;
+}
+inline void ResponseInfo::set_yourfd(::google::protobuf::int32 value) {
+  
+  yourfd_ = value;
+  // @@protoc_insertion_point(field_set:ResponseInfo.yourfd)
+}
+
 // -------------------------------------------------------------------
 
 // PlayerInput
@@ -795,7 +823,7 @@ inline void PlayerInput::set_allocated_playername(::std::string* playername) {
   // @@protoc_insertion_point(field_set_allocated:PlayerInput.playerName)
 }
 
-// int32 yaw = 3;
+// int32 yaw = 2;
 inline void PlayerInput::clear_yaw() {
   yaw_ = 0;
 }
@@ -809,7 +837,7 @@ inline void PlayerInput::set_yaw(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:PlayerInput.yaw)
 }
 
-// int32 hori = 4;
+// int32 hori = 3;
 inline void PlayerInput::clear_hori() {
   hori_ = 0;
 }
@@ -823,7 +851,7 @@ inline void PlayerInput::set_hori(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:PlayerInput.hori)
 }
 
-// int32 vect = 5;
+// int32 vect = 4;
 inline void PlayerInput::clear_vect() {
   vect_ = 0;
 }
@@ -837,7 +865,7 @@ inline void PlayerInput::set_vect(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:PlayerInput.vect)
 }
 
-// int32 speed = 6;
+// int32 speed = 5;
 inline void PlayerInput::clear_speed() {
   speed_ = 0;
 }
@@ -849,6 +877,20 @@ inline void PlayerInput::set_speed(::google::protobuf::int32 value) {
   
   speed_ = value;
   // @@protoc_insertion_point(field_set:PlayerInput.speed)
+}
+
+// int32 type = 6;
+inline void PlayerInput::clear_type() {
+  type_ = 0;
+}
+inline ::google::protobuf::int32 PlayerInput::type() const {
+  // @@protoc_insertion_point(field_get:PlayerInput.type)
+  return type_;
+}
+inline void PlayerInput::set_type(::google::protobuf::int32 value) {
+  
+  type_ = value;
+  // @@protoc_insertion_point(field_set:PlayerInput.type)
 }
 
 // -------------------------------------------------------------------

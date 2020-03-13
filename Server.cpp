@@ -1,25 +1,8 @@
-#include <sys/time.h>
-
-#include "RecvDataManager.h"
 #include "MySocket.h"
-
-using namespace std;
+#include "Timer.h"
 
 
 char data[BUFF_SIZE + HEAD_LENGTH],buff[BUFF_SIZE + HEAD_LENGTH];
-long timeStamp;
-struct timeval tv;
-
-long GetTimeNow()
-{
-    int ret = gettimeofday(&tv,NULL);
-    if(ret == -1) 
-    {
-        printf("GetTimeNow Error: errno = %d, (%s)\n", errno, strerror(errno));
-        return -1;
-    }
-    return tv.tv_sec * 1000000 + tv.tv_usec;
-}
 
 int main(int argc, char** argv)
 {
@@ -32,10 +15,10 @@ int main(int argc, char** argv)
     MySocket mySocket(port);
     mySocket.Init();
     mySocket.InitEpoll();
+    Timer timer;
     while(true){
         mySocket.Work(data, buff);
-        if(GetTimeNow() - timeStamp < 20000) {}
-        timeStamp = GetTimeNow();
+        timer.WaitForMSeconds(PER_FRAME_TIME);
         mySocket.Broad(buff);
     }
     return 0;
