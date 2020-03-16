@@ -45,7 +45,7 @@ public:
     void HandleLogIn(int, int, int, char*, char*);
 
     void SendToClientHistoryFrame(int, char*);
-
+    int GetClientNumber();
 
 private:
     //Socket和Epoll相关数据
