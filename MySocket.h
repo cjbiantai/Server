@@ -16,6 +16,7 @@
 #include "protobufs.pb.h"
 #include "Mmysql.h"
 #include "ClientData.h"
+#include "DataCenter.h"
 
 class MySocket
 {
@@ -28,23 +29,24 @@ public:
     //初始化Epoll
     void InitEpoll();
     //监听消息 
-    void Work(char*, char*);
+    void Work();
     //收到消息时的消息处理 处理沾包
-    void HandleRecvData(int, char*, char*);
+    void HandleRecvData(int);
     //处理消息队列 消息分包处理
-    void HandleData(int, char*, char*);
+    void HandleData(int);
     //分类型处理接受的消息
-    void HandleMsg(int, int, int, char*, char*);
+    void HandleMsg(int, int, int);
     //发送消息给单个客户端
-    void SendToClient(int, int, char*);
+    void SendToClient(int, int);
     //发送消息给全体客户端
-    void SendToAllClients(int, char*);
+    void SendToAllClients(int);
     //帧同步 广播消息
-    void Broad(char*);
+    void Broad();
     //处理登录注册操作
-    void HandleLogIn(int, int, int, char*, char*);
+    void HandleLogIn(int, int, int);
 
-    void SendToClientHistoryFrame(int, char*);
+    void SendToClientHistoryFrame(int, int);
+
     int GetClientNumber();
 
 private:
@@ -55,5 +57,6 @@ private:
     struct epoll_event ev;
     struct epoll_event* events;
     ClientData clientDatas;
+    DataCenter dataCenter;
 };
 

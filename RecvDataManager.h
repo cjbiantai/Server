@@ -9,9 +9,11 @@ public:
     int emptySize();
     int size();
     int pushData(char);
+    int GetSymbol();
+    int GetPackageLength();
     char popData();
-    char getDataAt(int);
     RecvDataManager();
+    void Log();
 private:
     int front,length;
     char buff[BUFF_SIZE * 10];

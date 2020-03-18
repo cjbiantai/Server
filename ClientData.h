@@ -25,6 +25,7 @@ public:
     //当前帧号和总帧数
     int frameNo,totalFrame;
 
+    int HistroyFrameNoToIdx[MAX_FRAMEDATAS];
     std::map<int, std::string>FdToUser;
 
     std::set<std::string>Users;

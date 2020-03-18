@@ -17,8 +17,9 @@ long Timer::GetMSecondsNow()
     return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
-void Timer::WaitForMSeconds(long uSeconds)
+bool Timer::WaitForMSeconds(long uSeconds)
 {
-    while(GetMSecondsNow() - timeStamp < uSeconds) {}
+    if(GetMSecondsNow() - timeStamp < uSeconds) return false;
     timeStamp = GetMSecondsNow();
+    return true;
 }

@@ -3,8 +3,6 @@
 
 #include "Consts.h"
 
-char data[BUFF_SIZE + HEAD_LENGTH],buff[BUFF_SIZE + HEAD_LENGTH];
-
 int main(int argc, char** argv)
 {
     int port;
@@ -17,10 +15,9 @@ int main(int argc, char** argv)
     mySocket.InitEpoll();
     Timer timer;
     while(true){
-        mySocket.Work(data, buff);
-        timer.WaitForMSeconds(PER_FRAME_TIME);
-        if(mySocket.GetClientNumber() == MAX_USERS)
-            mySocket.Broad(buff);
+        mySocket.Work();
+        if(!timer.WaitForMSeconds(PER_FRAME_TIME)) continue;
+        mySocket.Broad();
     }
     return 0;
 }

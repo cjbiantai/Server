@@ -10,7 +10,7 @@ class Timer
 {
 public:
     Timer();
-    void WaitForMSeconds(long);
+    bool WaitForMSeconds(long);
     
 
 private:

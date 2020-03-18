@@ -64,7 +64,7 @@ void MySocket::InitEpoll()
     }
     events = (struct epoll_event*)malloc(sizeof(ev)*MAX_EVENTS);
 }
-void MySocket::Work(char *data, char* buff) 
+void MySocket::Work() 
 {
     int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 1);
     for(int i = 0; i < nfds; ++i)
@@ -108,22 +108,22 @@ void MySocket::Work(char *data, char* buff)
             {
                     clientDatas.clientData[client_fd] = RecvDataManager();
             }
-            HandleRecvData(client_fd, data, buff);
+            HandleRecvData(client_fd);
         }
     }
 }
 
-void MySocket::HandleRecvData(int client_fd, char* data, char* buff)
+void MySocket::HandleRecvData(int client_fd)
 {
     RecvDataManager& recvDataManager = clientDatas.clientData[client_fd];
-    int ret = recv(client_fd, data, recvDataManager.emptySize(), 0);
+    int ret = recv(client_fd, dataCenter.GetDataArray(), recvDataManager.emptySize(), 0);
     if(ret > 0) 
     {
         for(int i = 0;i < ret; ++i) 
         {
-            recvDataManager.pushData(data[i]);  
+            recvDataManager.pushData(dataCenter.GetDataCharAt(i));  
         }
-        HandleData(client_fd, data, buff);
+        HandleData(client_fd);
     }else if(ret < 0)
     {
         printf("recv data from fd:%d error, errno = %d, (%s)\n", client_fd, errno, strerror(errno));
@@ -159,21 +159,21 @@ void MySocket::HandleRecvData(int client_fd, char* data, char* buff)
     }
 }
 
-void MySocket::HandleData(int client_fd, char* data, char* buff)
+void MySocket::HandleData(int client_fd)
 {
     RecvDataManager& RecvDataManager = clientDatas.clientData[client_fd];
     while(RecvDataManager.size() >= HEAD_LENGTH) 
     {
-        int symbol = RecvDataManager.getDataAt(0);
-        int package_length = (int)(RecvDataManager.getDataAt(1) - 1 ) * LENGTH_BASE + (int)RecvDataManager.getDataAt(2) - 1;
+        int symbol = RecvDataManager.GetSymbol();
+        int package_length = RecvDataManager.GetPackageLength();
         if(RecvDataManager.size() >= package_length + HEAD_LENGTH) 
         {
             for(int i = 0; i < HEAD_LENGTH; ++i) RecvDataManager.popData();
             for(int i = 0; i < package_length; ++i) 
             {
-                data[i] = RecvDataManager.popData();
+                dataCenter.ChangeDataAt(RecvDataManager.popData(), i);
             }
-            HandleMsg(client_fd, symbol, package_length, data, buff);        
+            HandleMsg(client_fd, symbol, package_length);        
         }else 
         {
             break;
@@ -181,42 +181,45 @@ void MySocket::HandleData(int client_fd, char* data, char* buff)
     }
 }
 
-void MySocket::HandleMsg(int client_fd, int symbol, int package_length, char* data, char* buff)
+void MySocket::HandleMsg(int client_fd, int symbol, int package_length)
 {
     if(symbol == FRAME_DATA)
     {
         PlayerInput playerInput;    
-        int ret = playerInput.ParseFromArray(data, package_length);
+        int ret = playerInput.ParseFromArray(dataCenter.GetDataArray(), package_length);
         if(ret == -1)
         {
             printf("PlayerInput ParseFromArray Error, Error Message is : \n");
-            for(int i = 0; i < package_length; ++i)
-            {
-                printf("%03d ", data[i]);
-            }
-            printf("\n");
             return ;
         }
         FrameData fmData;
         PlayerInput* ptr = fmData.mutable_playerinput();
         ptr -> CopyFrom(playerInput);
-        if(ptr -> type() != 0 && ptr -> type() != 7)  
-        {
-            clientDatas.ClientFrameData[client_fd] = fmData;
-        }
-        if(ptr -> type() == 7) 
-        {
-            clientDatas.AllFrameData[clientDatas.totalFrame++] = fmData;
-        }
+        clientDatas.ClientFrameData[client_fd] = fmData;
     }else if(symbol == LOG_IN || symbol == SIGN_UP)
     {
-        HandleLogIn(symbol, package_length, client_fd, data, buff);
+        HandleLogIn(symbol, package_length, client_fd);
+    }else if(symbol == REQUEST_FRAMEDATAS)
+    {
+        FrameData fmData;
+        int ret = fmData.ParseFromArray(dataCenter.GetDataArray(), package_length);
+        if(ret == -1) 
+        {
+            printf("FrameData ParseFromArray Error, Errror message is: \n");
+            for(int i = 0; i < package_length; ++i)
+            {
+                printf("%03d ", dataCenter.GetDataCharAt(i));
+            }
+            printf("\n");
+            return ;
+        }
+        SendToClientHistoryFrame(client_fd, fmData.frameno());
     }
 }
 
-void MySocket::SendToClient(int client_fd, int length, char* buff)
+void MySocket::SendToClient(int client_fd, int length)
 {
-    int ret = send(client_fd, buff, length, 0);
+    int ret = send(client_fd, dataCenter.GetBuffArray(), length, 0);
     if(ret == -1)
     {
         printf("send to client error: client_fd = %d, errno = %d, (%s)\n", client_fd, errno, strerror(errno));
@@ -237,66 +240,50 @@ void MySocket::SendToClient(int client_fd, int length, char* buff)
 }
 
 
-void MySocket::SendToAllClients(int length, char* buff)
+void MySocket::SendToAllClients(int length)
 {
     std::set<int>::iterator it;
     for(it = clientDatas.ClientFDSet.begin(); it != clientDatas.ClientFDSet.end(); it ++ )
     {
-        SendToClient((*it), length, buff);
+        SendToClient((*it), length);
     }
 }
 
-void MySocket::Broad(char* buff)
+void MySocket::Broad()
 {
     clientDatas.frameNo += 1;
+    clientDatas.HistroyFrameNoToIdx[clientDatas.frameNo] = clientDatas.totalFrame;
     std::map<int, FrameData>::iterator it;
-    for(int i = 0; i < clientDatas.totalFrame; ++i) 
-    {
-        FrameData fmData = clientDatas.AllFrameData[i];
-        fmData.set_frameno(clientDatas.frameNo);
-        int length = fmData.ByteSize();
-        if(!fmData.SerializeToArray(buff + HEAD_LENGTH, BUFF_SIZE))
-        {
-            printf("SerializeToArray Error: error at framNo = %d, client_fd = %d\n", clientDatas.frameNo, (*it).first);
-            continue;
-        }
-        buff[0] = FRAME_DATA;
-        buff[1] = length / LENGTH_BASE + 1;
-        buff[2] = length % LENGTH_BASE + 1;
-        SendToAllClients(length + HEAD_LENGTH, buff);
-
-    }
     for(it = clientDatas.ClientFrameData.begin(); it!= clientDatas.ClientFrameData.end(); it++)
     {
         FrameData fmData = (*it).second;
         PlayerInput* ptr = fmData.mutable_playerinput();
         fmData.set_frameno(clientDatas.frameNo);
-        int length = fmData.ByteSize();
-        if(!fmData.SerializeToArray(buff + HEAD_LENGTH, BUFF_SIZE))
+        if(!fmData.SerializeToArray(dataCenter.GetBuffArray() + HEAD_LENGTH, BUFF_SIZE))
         {
             printf("SerializeToArray Error: error at framNo = %d, client_fd = %d\n", clientDatas.frameNo, (*it).first);
             continue;
         }
-        if(ptr -> type() == 9)
-        {
-            ptr -> set_type(0);
-        }
         (*it).second = fmData;
-        buff[0] = FRAME_DATA;
-        buff[1] = length / LENGTH_BASE + 1;
-        buff[2] = length % LENGTH_BASE + 1;
-    //    clientDatas.AllFrameData[clientDatas.totalFrame++] = fmData;
-        SendToAllClients(length + HEAD_LENGTH, buff);
+        dataCenter.AddHead(FRAME_DATA, fmData.ByteSize(), LENGTH_BASE);
+        clientDatas.AllFrameData[clientDatas.totalFrame++] = fmData;
+        printf("send data to client frameNo is %d\n", fmData.frameno());
+        SendToAllClients(fmData.ByteSize() + HEAD_LENGTH);
     }
 }
-void MySocket::HandleLogIn(int symbol, int length, int client_fd, char* data, char* buff)
+void MySocket::HandleLogIn(int symbol, int length, int client_fd)
 {
     ResponseInfo resp;
     UserInfo user;
     int ret;
     char query_string[255];
     resp.set_yourfd(client_fd);
-    if(!user.ParseFromArray(data, length))
+    for(int i = 0; i < length; ++i)
+    {
+        printf("%3d ", dataCenter.GetDataCharAt(i));
+    }
+    printf("\n");
+    if(!user.ParseFromArray(dataCenter.GetDataArray(), length))
     {
         printf("ParseFromArray Error\n");
         resp.set_response_id(-1);
@@ -362,40 +349,31 @@ void MySocket::HandleLogIn(int symbol, int length, int client_fd, char* data, ch
                 resp.set_message("OK");
         }
     }    
-    if(!resp.SerializeToArray(buff + HEAD_LENGTH, BUFF_SIZE))
+    if(!resp.SerializeToArray(dataCenter.GetBuffArray() + HEAD_LENGTH, BUFF_SIZE))
     {
         printf("SerializeToArray Error\n");
         return ;
     }
-    length = resp.ByteSize();
-    buff[0] = RESPONSE;
-    buff[1] = length / LENGTH_BASE + 1;
-    buff[2] = length % LENGTH_BASE + 1;
-    SendToClient(client_fd, length + HEAD_LENGTH, buff);
-    if(symbol == LOG_IN && resp.message() == "OK") 
-    {
- //       SendToClientHistoryFrame(client_fd, buff);
-    }
+    dataCenter.AddHead(RESPONSE, resp.ByteSize(), LENGTH_BASE);
+    SendToClient(client_fd, resp.ByteSize() + HEAD_LENGTH);
 }
 
-void MySocket::SendToClientHistoryFrame(int client_fd, char* buff)
+void MySocket::SendToClientHistoryFrame(int client_fd, int reqFrameNo)
 {
-    for(int i = 0; i < clientDatas.totalFrame; i++)
+    int idx = clientDatas.HistroyFrameNoToIdx[reqFrameNo];
+    for(int i = idx; i < clientDatas.totalFrame; i++)
     {
         FrameData fmData = clientDatas.AllFrameData[i];
-        int length = fmData.ByteSize();
-        if(!fmData.SerializeToArray(buff + HEAD_LENGTH, BUFF_SIZE))
+        if(!fmData.SerializeToArray(dataCenter.GetBuffArray() + HEAD_LENGTH, BUFF_SIZE))
         {
             printf("SerializeToArray Error: error at framNo = %d, client_fd = %d\n", fmData.frameno(), client_fd);
             continue;
         }
-        buff[0] = FRAME_DATA;
-        buff[1] = length / LENGTH_BASE + 1;
-        buff[2] = length % LENGTH_BASE + 1;
-        SendToClient(client_fd, length + HEAD_LENGTH, buff);
-
+        dataCenter.AddHead(FRAME_DATA, fmData.ByteSize(), LENGTH_BASE);
+        SendToClient(client_fd, fmData.ByteSize() + HEAD_LENGTH);
     }
 }
+
 
 int MySocket::GetClientNumber()
 {

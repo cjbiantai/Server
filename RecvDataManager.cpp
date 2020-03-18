@@ -27,6 +27,16 @@ int RecvDataManager::pushData(char c)
     return 0;
 }
 
+int RecvDataManager::GetSymbol()
+{
+    return buff[front];
+}
+
+int RecvDataManager::GetPackageLength()
+{
+    return (int)(buff[(front + 1) % BUFF_SIZE] -1) * LENGTH_BASE + buff[(front + 2) % BUFF_SIZE] - 1; 
+}
+
 char RecvDataManager::popData()
 {
     if(emptySize() == BUFF_SIZE)
@@ -40,15 +50,6 @@ char RecvDataManager::popData()
     return c;
 }
 
-char RecvDataManager::getDataAt(int idx)
-{
-    if(size() <= idx || idx < 0) 
-    {
-        printf("index out of range\n");
-        return -1;
-    }
-    return buff[(front + idx) % BUFF_SIZE];
-}
 RecvDataManager::RecvDataManager()
 {
     front = 0;
@@ -56,3 +57,11 @@ RecvDataManager::RecvDataManager()
 }
 
 
+void RecvDataManager::Log()
+{
+    for(int i = 0; i < length; ++i)
+    {
+        printf("%3d ", buff[(front + i) % BUFF_SIZE]);
+    }
+    printf("\n");
+}
