@@ -441,6 +441,12 @@ class PlayerInput : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::google::protobuf::int32 type() const;
   void set_type(::google::protobuf::int32 value);
 
+  // int32 characterId = 7;
+  void clear_characterid();
+  static const int kCharacterIdFieldNumber = 7;
+  ::google::protobuf::int32 characterid() const;
+  void set_characterid(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:PlayerInput)
  private:
 
@@ -451,6 +457,7 @@ class PlayerInput : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::google::protobuf::int32 vect_;
   ::google::protobuf::int32 speed_;
   ::google::protobuf::int32 type_;
+  ::google::protobuf::int32 characterid_;
   mutable int _cached_size_;
   friend struct ::protobuf_protobufs_2eproto::TableStruct;
   friend void ::protobuf_protobufs_2eproto::InitDefaultsPlayerInputImpl();
@@ -891,6 +898,20 @@ inline void PlayerInput::set_type(::google::protobuf::int32 value) {
   
   type_ = value;
   // @@protoc_insertion_point(field_set:PlayerInput.type)
+}
+
+// int32 characterId = 7;
+inline void PlayerInput::clear_characterid() {
+  characterid_ = 0;
+}
+inline ::google::protobuf::int32 PlayerInput::characterid() const {
+  // @@protoc_insertion_point(field_get:PlayerInput.characterId)
+  return characterid_;
+}
+inline void PlayerInput::set_characterid(::google::protobuf::int32 value) {
+  
+  characterid_ = value;
+  // @@protoc_insertion_point(field_set:PlayerInput.characterId)
 }
 
 // -------------------------------------------------------------------

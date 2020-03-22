@@ -2,6 +2,7 @@
 
 MySocket::MySocket(int port)
 {
+    totalUser = 0;
     this->port = port;
 }
 
@@ -103,10 +104,9 @@ void MySocket::Work()
         }else 
         {
             int ret = -1,client_fd = events[i].data.fd;
-            clientDatas.ClientFDSet.insert(client_fd);
             if(clientDatas.clientData.find(client_fd) == clientDatas.clientData.end()) 
             {
-                    clientDatas.clientData[client_fd] = RecvDataManager();
+                clientDatas.clientData[client_fd] = RecvDataManager();
             }
             HandleRecvData(client_fd);
         }
@@ -233,9 +233,6 @@ void MySocket::SendToClient(int client_fd, int length)
         }
         close(client_fd);
 
-    }else 
-    {
-        printf("send to client :client_fd = %d,lenth = %d\n", client_fd, length);
     }
 }
 
@@ -258,17 +255,18 @@ void MySocket::Broad()
     {
         FrameData fmData = (*it).second;
         PlayerInput* ptr = fmData.mutable_playerinput();
+        ptr ->set_characterid(clientDatas.UserId[ptr -> playername()]);
         fmData.set_frameno(clientDatas.frameNo);
         if(!fmData.SerializeToArray(dataCenter.GetBuffArray() + HEAD_LENGTH, BUFF_SIZE))
         {
             printf("SerializeToArray Error: error at framNo = %d, client_fd = %d\n", clientDatas.frameNo, (*it).first);
             continue;
         }
-        (*it).second = fmData;
         dataCenter.AddHead(FRAME_DATA, fmData.ByteSize(), LENGTH_BASE);
         clientDatas.AllFrameData[clientDatas.totalFrame++] = fmData;
-        printf("send data to client frameNo is %d\n", fmData.frameno());
         SendToAllClients(fmData.ByteSize() + HEAD_LENGTH);
+        ptr -> set_type(0);
+        (*it).second = fmData;
     }
 }
 void MySocket::HandleLogIn(int symbol, int length, int client_fd)
@@ -310,8 +308,11 @@ void MySocket::HandleLogIn(int symbol, int length, int client_fd)
                 if(ret == QUERY_OK){
                     if(clientDatas.Users.find(user.user_name()) == clientDatas.Users.end())
                     {
+
+                        clientDatas.ClientFDSet.insert(client_fd);
                         clientDatas.Users.insert(user.user_name());
                         clientDatas.FdToUser[client_fd] = user.user_name();
+                        clientDatas.UserId[user.user_name()] = totalUser++; 
                         resp.set_message("OK");
                     }else 
                     {
@@ -356,6 +357,13 @@ void MySocket::HandleLogIn(int symbol, int length, int client_fd)
     }
     dataCenter.AddHead(RESPONSE, resp.ByteSize(), LENGTH_BASE);
     SendToClient(client_fd, resp.ByteSize() + HEAD_LENGTH);
+    /*
+    if(resp.response_id() == 0)
+    {
+        printf(" ------------------------>_<----------------------------\n");
+        SendToClientHistoryFrame(client_fd, 0);    
+    }
+    */
 }
 
 void MySocket::SendToClientHistoryFrame(int client_fd, int reqFrameNo)
@@ -370,6 +378,7 @@ void MySocket::SendToClientHistoryFrame(int client_fd, int reqFrameNo)
             continue;
         }
         dataCenter.AddHead(FRAME_DATA, fmData.ByteSize(), LENGTH_BASE);
+        printf("send to client: %d, frameno: %d\n", client_fd, fmData.frameno());
         SendToClient(client_fd, fmData.ByteSize() + HEAD_LENGTH);
     }
 }

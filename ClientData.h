@@ -25,10 +25,16 @@ public:
     //当前帧号和总帧数
     int frameNo,totalFrame;
 
+    //储存每个帧号对应的最早的帧信息，用于追帧
     int HistroyFrameNoToIdx[MAX_FRAMEDATAS];
-    std::map<int, std::string>FdToUser;
 
+    //Fd 到 用户名 的映射
+    std::map<int, std::string>FdToUser;
+    //已登录用户名集合 
     std::set<std::string>Users;
+
+    //储存每个用户登录时的序号
+    std::map<std::string, int>UserId;
 };
 
 

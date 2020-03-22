@@ -48,6 +48,7 @@ public:
     void SendToClientHistoryFrame(int, int);
 
     int GetClientNumber();
+    int totalUser;
 
 private:
     //Socket和Epoll相关数据
@@ -58,5 +59,6 @@ private:
     struct epoll_event* events;
     ClientData clientDatas;
     DataCenter dataCenter;
+    //当局所有登录成功过的玩家
 };
 
