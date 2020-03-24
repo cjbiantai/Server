@@ -17,6 +17,7 @@ int main(int argc, char** argv)
     while(true){
         mySocket.Work();
         if(!timer.WaitForMSeconds(PER_FRAME_TIME)) continue;
+        if(mySocket.totalUser < 1) continue;
         mySocket.Broad();
     }
     return 0;

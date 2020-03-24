@@ -155,6 +155,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::PlayerInput, speed_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::PlayerInput, type_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::PlayerInput, characterid_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::PlayerInput, skillid_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::FrameData, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -167,7 +168,7 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROT
   { 0, -1, sizeof(::UserInfo)},
   { 7, -1, sizeof(::ResponseInfo)},
   { 15, -1, sizeof(::PlayerInput)},
-  { 27, -1, sizeof(::FrameData)},
+  { 28, -1, sizeof(::FrameData)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -202,15 +203,15 @@ void AddDescriptorsImpl() {
       "\n\017protobufs.proto\"4\n\010UserInfo\022\021\n\tuser_na"
       "me\030\001 \001(\t\022\025\n\ruser_password\030\002 \001(\t\"D\n\014Respo"
       "nseInfo\022\017\n\007message\030\001 \001(\t\022\023\n\013response_id\030"
-      "\002 \001(\005\022\016\n\006yourfd\030\003 \001(\005\"|\n\013PlayerInput\022\022\n\n"
-      "playerName\030\001 \001(\t\022\013\n\003yaw\030\002 \001(\005\022\014\n\004hori\030\003 "
-      "\001(\005\022\014\n\004vect\030\004 \001(\005\022\r\n\005speed\030\005 \001(\005\022\014\n\004type"
-      "\030\006 \001(\005\022\023\n\013characterId\030\007 \001(\005\"\?\n\tFrameData"
-      "\022\017\n\007frameNo\030\001 \001(\005\022!\n\013playerInput\030\002 \001(\0132\014"
-      ".PlayerInputb\006proto3"
+      "\002 \001(\005\022\016\n\006yourfd\030\003 \001(\005\"\215\001\n\013PlayerInput\022\022\n"
+      "\nplayerName\030\001 \001(\t\022\013\n\003yaw\030\002 \001(\005\022\014\n\004hori\030\003"
+      " \001(\005\022\014\n\004vect\030\004 \001(\005\022\r\n\005speed\030\005 \001(\005\022\014\n\004typ"
+      "e\030\006 \001(\005\022\023\n\013characterId\030\007 \001(\005\022\017\n\007skillId\030"
+      "\010 \001(\005\"\?\n\tFrameData\022\017\n\007frameNo\030\001 \001(\005\022!\n\013p"
+      "layerInput\030\002 \001(\0132\014.PlayerInputb\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 340);
+      descriptor, 358);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "protobufs.proto", &protobuf_RegisterTypes);
 }
@@ -889,6 +890,7 @@ const int PlayerInput::kVectFieldNumber;
 const int PlayerInput::kSpeedFieldNumber;
 const int PlayerInput::kTypeFieldNumber;
 const int PlayerInput::kCharacterIdFieldNumber;
+const int PlayerInput::kSkillIdFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 PlayerInput::PlayerInput()
@@ -909,16 +911,16 @@ PlayerInput::PlayerInput(const PlayerInput& from)
     playername_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.playername_);
   }
   ::memcpy(&yaw_, &from.yaw_,
-    static_cast<size_t>(reinterpret_cast<char*>(&characterid_) -
-    reinterpret_cast<char*>(&yaw_)) + sizeof(characterid_));
+    static_cast<size_t>(reinterpret_cast<char*>(&skillid_) -
+    reinterpret_cast<char*>(&yaw_)) + sizeof(skillid_));
   // @@protoc_insertion_point(copy_constructor:PlayerInput)
 }
 
 void PlayerInput::SharedCtor() {
   playername_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&yaw_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&characterid_) -
-      reinterpret_cast<char*>(&yaw_)) + sizeof(characterid_));
+      reinterpret_cast<char*>(&skillid_) -
+      reinterpret_cast<char*>(&yaw_)) + sizeof(skillid_));
   _cached_size_ = 0;
 }
 
@@ -962,8 +964,8 @@ void PlayerInput::Clear() {
 
   playername_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&yaw_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&characterid_) -
-      reinterpret_cast<char*>(&yaw_)) + sizeof(characterid_));
+      reinterpret_cast<char*>(&skillid_) -
+      reinterpret_cast<char*>(&yaw_)) + sizeof(skillid_));
   _internal_metadata_.Clear();
 }
 
@@ -1077,6 +1079,20 @@ bool PlayerInput::MergePartialFromCodedStream(
         break;
       }
 
+      // int32 skillId = 8;
+      case 8: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(64u /* 64 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &skillid_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
       default: {
       handle_unusual:
         if (tag == 0) {
@@ -1143,6 +1159,11 @@ void PlayerInput::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(7, this->characterid(), output);
   }
 
+  // int32 skillId = 8;
+  if (this->skillid() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(8, this->skillid(), output);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -1196,6 +1217,11 @@ void PlayerInput::SerializeWithCachedSizes(
   // int32 characterId = 7;
   if (this->characterid() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(7, this->characterid(), target);
+  }
+
+  // int32 skillId = 8;
+  if (this->skillid() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(8, this->skillid(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1264,6 +1290,13 @@ size_t PlayerInput::ByteSizeLong() const {
         this->characterid());
   }
 
+  // int32 skillId = 8;
+  if (this->skillid() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->skillid());
+  }
+
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = cached_size;
@@ -1315,6 +1348,9 @@ void PlayerInput::MergeFrom(const PlayerInput& from) {
   if (from.characterid() != 0) {
     set_characterid(from.characterid());
   }
+  if (from.skillid() != 0) {
+    set_skillid(from.skillid());
+  }
 }
 
 void PlayerInput::CopyFrom(const ::google::protobuf::Message& from) {
@@ -1348,6 +1384,7 @@ void PlayerInput::InternalSwap(PlayerInput* other) {
   swap(speed_, other->speed_);
   swap(type_, other->type_);
   swap(characterid_, other->characterid_);
+  swap(skillid_, other->skillid_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }

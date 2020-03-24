@@ -22,6 +22,7 @@ message PlayerInput
     int32 speed = 5;
     int32 type = 6;
     int32 characterId = 7;
+    int32 skillId = 8;
 }
 
 message FrameData

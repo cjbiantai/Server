@@ -447,6 +447,12 @@ class PlayerInput : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::google::protobuf::int32 characterid() const;
   void set_characterid(::google::protobuf::int32 value);
 
+  // int32 skillId = 8;
+  void clear_skillid();
+  static const int kSkillIdFieldNumber = 8;
+  ::google::protobuf::int32 skillid() const;
+  void set_skillid(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:PlayerInput)
  private:
 
@@ -458,6 +464,7 @@ class PlayerInput : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::google::protobuf::int32 speed_;
   ::google::protobuf::int32 type_;
   ::google::protobuf::int32 characterid_;
+  ::google::protobuf::int32 skillid_;
   mutable int _cached_size_;
   friend struct ::protobuf_protobufs_2eproto::TableStruct;
   friend void ::protobuf_protobufs_2eproto::InitDefaultsPlayerInputImpl();
@@ -912,6 +919,20 @@ inline void PlayerInput::set_characterid(::google::protobuf::int32 value) {
   
   characterid_ = value;
   // @@protoc_insertion_point(field_set:PlayerInput.characterId)
+}
+
+// int32 skillId = 8;
+inline void PlayerInput::clear_skillid() {
+  skillid_ = 0;
+}
+inline ::google::protobuf::int32 PlayerInput::skillid() const {
+  // @@protoc_insertion_point(field_get:PlayerInput.skillId)
+  return skillid_;
+}
+inline void PlayerInput::set_skillid(::google::protobuf::int32 value) {
+  
+  skillid_ = value;
+  // @@protoc_insertion_point(field_set:PlayerInput.skillId)
 }
 
 // -------------------------------------------------------------------
