@@ -5,19 +5,20 @@
 
 int main(int argc, char** argv)
 {
-    int port;
+    int oneRoomNumber;
     if (argc < 2)
     {
-        port = DEFAULT_PORT;
-    }else port = atoi(argv[1]);
-    MySocket mySocket(port);
+        oneRoomNumber = 1;
+    }else oneRoomNumber = atoi(argv[1]);
+
+    MySocket mySocket(DEFAULT_PORT);
     mySocket.Init();
     mySocket.InitEpoll();
     Timer timer;
     while(true){
         mySocket.Work();
         if(!timer.WaitForMSeconds(PER_FRAME_TIME)) continue;
-        if(mySocket.totalUser < 1) continue;
+        if(mySocket.GetClientNumber() < oneRoomNumber) continue;
         mySocket.Broad();
     }
     return 0;

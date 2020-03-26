@@ -264,9 +264,9 @@ void MySocket::Broad()
         }
         dataCenter.AddHead(FRAME_DATA, fmData.ByteSize(), LENGTH_BASE);
         clientDatas.AllFrameData[clientDatas.totalFrame++] = fmData;
-        printf("--------------%d\n", ptr -> type());
+        printf("broad frameData, frameno is %d, frameType is %d\n",fmData.frameno(), ptr -> type());
         SendToAllClients(fmData.ByteSize() + HEAD_LENGTH);
-        ptr -> set_type(0);
+        //ptr -> set_type(0);
         (*it).second = fmData;
     }
 }

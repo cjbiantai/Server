@@ -8,7 +8,7 @@
 #define FRAME_DATA 6
 #define CAN_INIT_CHARACTER 7
 #define REQUEST_FRAMEDATAS 8
-#define PER_FRAME_TIME 25000
+#define PER_FRAME_TIME 30000
 #define HEAD_LENGTH 3
 #define LENGTH_BASE 100 
 #define BUFF_SIZE 10240
@@ -16,7 +16,7 @@
 #define BACKLOG 100
 #define MAX_EVENTS 1024
 #define HEAD_LENGTH 3
-#define MAX_USERS 1
+#define ONE_ROOM 1
 #define MAX_FRAMEDATAS 100000
 
 
